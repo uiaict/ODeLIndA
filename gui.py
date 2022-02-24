@@ -15,28 +15,7 @@ import numpy as np
 import time
 
 
-def predictor(img):
-    test_image = cv2.resize(img, (224, 224))
-    test_image = np.expand_dims(test_image, axis=0)
-    test_image = test_image/255
-    result=model.predict(test_image)
-    prediction = 0
-    if np.argmax(result) == 0:
-        prediction = 0 #"There is no obstruction, it is clean view of camera"
-    elif np.argmax(result) == 1:
-        prediction = 1  #"There is a glass crack in view of camera"
-    elif np.argmax(result) == 2:
-        prediction = 2 #"There is a dirty view in the camera"
-    elif np.argmax(result) == 3:
-        prediction = 3 #"There is a foggy view in the camera"
-    elif np.argmax(result) == 4:
-        prediction = 4 #"There is a rainy view in the camera"
-    print(np.argmax(result))
-    return prediction
-
-
-
-class ChangeVideo:
+class FunctionHolder:
     @staticmethod
     def get_Video():
         # We can expand valid file endings but this is all of them for now
@@ -72,7 +51,7 @@ class ChangeVideo:
                     # print("Port %s for camera (%s x %s) is present but does not reads." % (dev_port, h, w))
                     working_ports.append(dev_port)
             dev_port += 1
-        return available_ports, working_ports, non_working_ports
+        return available_ports
 
     @staticmethod
     def getall_images():
@@ -87,18 +66,51 @@ class ChangeVideo:
             resized_image = img.resize((224, 224), Image.ANTIALIAS)
             new_image = ImageTk.PhotoImage(resized_image)
             all_images_tk.append(new_image)
-
         return onlyfiles, all_images_tk
+
+    @staticmethod
+    def predictor_text(frame, labels, font, imwrite_text):
+        # time.sleep(0.5)
+        cv2.putText(frame,
+                    labels,
+                    (600, 50), font
+                    , 1,
+                    (0, 0, 255),
+                    2,
+                    cv2.LINE_AA)
+        percent = 50
+        width = int(frame.shape[1] * percent / 100)
+        height = int(frame.shape[0] * percent / 100)
+        dim = (width, height)
+        frame25 = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+        cv2.imshow(imwrite_text[0], frame25)
+        print(imwrite_text[1])
+        cv2.imwrite(imwrite_text[2], frame)
 
 
 def close(event):
     sys.exit()
 
 
-# def onClick():
-#     inputDialog = MyDialog(app)
-#     app.wait_window(inputDialog.top)
-#     print(result)
+def predictor(img):
+    test_image = cv2.resize(img, (224, 224))
+    test_image = np.expand_dims(test_image, axis=0)
+    test_image = test_image / 255
+    result = model.predict(test_image)
+    prediction = 0
+    if np.argmax(result) == 0:
+        prediction = 0  # "There is no obstruction, it is clean view of camera"
+    elif np.argmax(result) == 1:
+        prediction = 1  # "There is a glass crack in view of camera"
+    elif np.argmax(result) == 2:
+        prediction = 2  # "There is a dirty view in the camera"
+    elif np.argmax(result) == 3:
+        prediction = 3  # "There is a foggy view in the camera"
+    elif np.argmax(result) == 4:
+        prediction = 4  # "There is a rainy view in the camera"
+    # print(np.argmax(result))
+    return prediction
+
 
 class App(tk.Tk):
     def __init__(self, title):
@@ -107,17 +119,49 @@ class App(tk.Tk):
         self.geometry("1920x1080")
 
 
-class MyDialog:
-    def __init__(self, parent):
-        top = self.top = Toplevel(parent)
-        self.myLabel = tk.Label(top, text="Enter your username below")
-        self.myLabel.pack()
-        self.send()
+class CameraSelection_PopUp(Toplevel):
+    def __init__(self, master, called_by, available_cams):
+        Toplevel.__init__(self, master)
+        self.master = master
+        self.called = called_by
+        self.geometry("900x900")
+        self.called.stop = True
+        self.master.withdraw()
+        self.populate(available_cams)
 
-    def send(self):
-        global result
-        result = None
-        self.top.destroy()
+    def populate(self, available_cams):
+        # We only populate for a set number of cameras, max is 25 total camera options for a single program in thi case
+        i = 0
+        row = 0
+        column = 1
+        no_of_cam = len(available_cams)
+        while i != no_of_cam:
+            self.camera_button = Camera_Button(self, row, column - 1, available_cams[i], self)
+            self.camera_button.configure(command=self.camera_button.set_var, text=available_cams[i])
+            i += 1
+            column += 1
+            if column % 6 == 0:
+                row += 1
+                column = 0
+        return 0
+
+    def buttonpress(self):
+        self.master.deiconify()
+        self.destroy()
+
+
+class Camera_Button(ttk.Button):
+    def __init__(self, container, indexx, indexy, camera_no, parent):
+        super().__init__(container)
+
+        self.grid(column=indexx, row=indexy)
+        # self.text = camera_no
+        self.camera_no = camera_no
+        self.parent = parent
+
+    def set_var(self):
+        self.parent.called.video_source_stream.set(self.camera_no)
+        self.parent.buttonpress()
 
 
 class ViewerFrame(ttk.Frame):
@@ -127,19 +171,17 @@ class ViewerFrame(ttk.Frame):
         self.stop = stop
         self.counter = 0
         self.frameNumber = 0
+        self.after_id = None
         """
-        We store the camera source and video file source differently
-        as tk variables are strict
+        We store the camera source as an tk int
         """
-        self.video_source_file = tk.StringVar()
         self.video_source_stream = tk.IntVar()
         self.video_source_stream.set(0)
-        if not self.stop:
-            self.cap = cv2.VideoCapture(self.video_source_stream.get())
-            self.width = 800
-            self.height = 600
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
+        self.width = 800
+        self.height = 800
+        self.cap = cv2.VideoCapture(self.video_source_stream.get())
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
 
         # Label holder for our video images
         self.video_label = ttk.Label(self)
@@ -152,13 +194,34 @@ class ViewerFrame(ttk.Frame):
         # Button to change source to a camera (currently only works on source = 0)
         self.change_live_button = ttk.Button(self, text="Change to live source")
         self.change_live_button.grid(column=0, row=2, sticky="w")
-        self.change_live_button.configure(command=self.change_to_live)
+        self.change_live_button.configure(command=lambda: self.callPopup(container))
+        # self.change_live_button.configure(command=self.toggle_feed)
         # Initiates the start of our frames being read
         self.show_frames()
         # self.button_label = ttk.Label(self)
         # self.button_label.grid(column=0, row=1, sticky="w", **options)
         self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
 
+    def callPopup(self, master):
+        self.stop = True
+        self.cap.release()
+        available_cams = FunctionHolder.get_Streams()
+
+        if len(available_cams) == 0 or available_cams is None:
+            showerror(title="Error", message="No available streams!")
+        else:
+            options_popup = CameraSelection_PopUp(master, self, available_cams)
+            options_popup.wait_window()
+        self.stop = False
+        self.cap = cv2.VideoCapture(self.video_source_stream.get())
+        self.show_frames()
+
+    def toggle_feed(self):
+        if self.after_id == None:
+            self.show_frames()
+        else:
+            self.after_cancel(self.after_id)
+            self.after_id = None
 
     def show_frames(self):
         """
@@ -166,12 +229,12 @@ class ViewerFrame(ttk.Frame):
         Currently best method as it does not stall the app during runtime
         However could be tidied up with the if statements
         """
-        fps = self.cap.get(cv2.CAP_PROP_FPS)
-        frameCount = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        duration = frameCount / fps
-        target = 5
         if not self.stop:
-            #time.sleep(0.5)
+            fps = self.cap.get(cv2.CAP_PROP_FPS)
+            frameCount = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            duration = frameCount / fps
+            target = 5
+            # time.sleep(0.5)
             ret, frame = self.cap.read()
             height, width, channels = frame.shape
             frame_edited = cv2.flip(frame, 1)
@@ -182,99 +245,41 @@ class ViewerFrame(ttk.Frame):
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_label.imgtk = imgtk
             self.video_label.configure(image=imgtk)
-            labels= ["Lens Crack : Please repair camera lens", "Dirty Lens : Please clean the camera lens","Foggy View : Drive carefully and decrease the speed","Rainy View : Drive carefully and decrease the speed"]
+            labels = ["Lens Crack : Please repair camera lens", "Dirty Lens : Please clean the camera lens",
+                      "Foggy View : Drive carefully and decrease the speed",
+                      "Rainy View : Drive carefully and decrease the speed"]
             font = cv2.FONT_HERSHEY_SIMPLEX
             if self.counter == target:
                 # display and stuff
                 self.counter = 0
                 time_frame = str(timedelta(seconds=60 * (self.frameNumber / fps)))
                 td = time_frame.split(':')
-                if (predictor(frame) == 1):
-                    time.sleep(0.5)
-                    cv2.putText(frame,
-                                labels[0],
-                                (600, 50), font
-                                , 1,
-                                (0, 0, 255),
-                                2,
-                                cv2.LINE_AA)
-                    percent = 50
-                    width = int(frame.shape[1] * percent / 100)
-                    height = int(frame.shape[0] * percent / 100)
-                    dim = (width, height)
-                    frame25 = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-                    cv2.imshow("Lens Crack", frame25)
-                    print(f"Crack View at {td[1]}:{td[2]}")
-                    cv2.imwrite(f"./obstruction/{td[1]}-{td[2]}_crack.jpg", frame)
-
-
-
-                elif (predictor(frame) == 2):
-                    time.sleep(0.5)
-                    cv2.putText(frame,
-                                labels[1],
-                                (600, 50), font
-                                , 1,
-                                (0, 0, 255),
-                                2,
-                                cv2.LINE_AA)
-                    percent = 50
-                    width = int(frame.shape[1] * percent / 100)
-                    height = int(frame.shape[0] * percent / 100)
-                    dim = (width, height)
-                    frame25 = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-                    cv2.imshow("Dirty Lens ", frame25)
-                    print(f"Dirty View at {td[1]}:{td[2]}")
-                    cv2.imwrite(f"./obstruction/{td[1]}-{td[2]}_dirty.jpg", frame)
-
-
-
-                elif (predictor(frame) == 3):
-                    time.sleep(0.5)
-                    cv2.putText(frame,
-                                labels[2],
-                                (600, 50), font
-                                , 1,
-                                (0, 0, 255),
-                                2,
-                                cv2.LINE_AA)
-                    percent = 50
-                    width = int(frame.shape[1] * percent / 100)
-                    height = int(frame.shape[0] * percent / 100)
-                    dim = (width, height)
-                    frame25 = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-                    cv2.imshow("Foggy View", frame25)
-                    print(f"Foggy at {td[1]}:{td[2]}")
-                    cv2.imwrite(f"./obstruction/{td[1]}-{td[2]}_foggy.jpg", frame)
-
-                elif (predictor(frame) == 4):
-                    time.sleep(0.5)
-                    cv2.putText(frame,
-                                labels[3],
-                                (600, 50), font
-                                , 1,
-                                (0, 0, 255),
-                                2,
-                                cv2.LINE_AA)
-
-                    percent = 50
-                    width = int(frame.shape[1] * percent / 100)
-                    height = int(frame.shape[0] * percent / 100)
-                    dim = (width, height)
-                    frame25 = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-                    cv2.imshow("Rainy View", frame25)
-                    print(f"Rainy at {td[1]}:{td[2]}")
-                    cv2.imwrite(f"./obstruction/{td[1]}-{td[2]}_rainy.jpg", frame)
-
-
-
+                if predictor(frame) == 1:
+                    FunctionHolder.predictor_text(frame, labels[0], font, ["Lens Crack",
+                                                                           f"Crack View at {td[1]}:{td[2]}",
+                                                                           f"./obstruction/{td[1]}-{td[2]}_crack.jpg"])
+                elif predictor(frame) == 2:
+                    FunctionHolder.predictor_text(frame, labels[1], font, ["Dirty Lens",
+                                                                           f"Dirty View at {td[1]}:{td[2]}",
+                                                                           f"./obstruction/{td[1]}-{td[2]}_dirty.jpg"])
+                elif predictor(frame) == 3:
+                    FunctionHolder.predictor_text(frame, labels[2], font, ["Foggy View",
+                                                                           f"Foggy at {td[1]}:{td[2]}",
+                                                                           f"./obstruction/{td[1]}-{td[2]}_foggy.jpg"])
+                elif predictor(frame) == 4:
+                    FunctionHolder.predictor_text(frame, labels[3], font, ["Rainy View",
+                                                                           f"Rainy at {td[1]}:{td[2]}",
+                                                                           f"./obstruction/{td[1]}-{td[2]}_rainy.jpg"])
                 else:
                     print(f"Clean View at {td[1]}:{td[2]}")
                 self.frameNumber += 1
             else:
                 ret = self.cap.grab()
                 self.counter += 1
-            self.video_label.after(4, self.show_frames)
+            self.after_id = self.video_label.after(5, self.show_frames)
+        else:
+            self.after_cancel(self.after_id)
+            self.after_id = None
 
     """
     Method for changing the cap source to a video source
@@ -282,36 +287,19 @@ class ViewerFrame(ttk.Frame):
     If they give an invalid file we warn the user
     Otherwise it becomes the current cap content
     """
+
     def change_to_video(self, event=None):
-        videopath = ChangeVideo.get_Video()
+        videopath = FunctionHolder.get_Video()
         if videopath is not None:
             self.cap = cv2.VideoCapture(videopath)
-        self.stop = False
-
-    """
-    Method being worked on, will prompt the user with a custom dialog
-    The dialog will be buttons for the valid video sources
-    In case they have multiple sources
-    That is what is planned but for now it only switches to the 0th video source
-    """
-    def change_to_live(self, event=None):
-        # Planned code for the future
-        # Will implement as we move on but for now wanted a working solution
-        # Rather than one that accounts for all scenarios
-        # self.stop = True
-        # self.cap.release()
-        # available_ports, working_ports, non_working_ports = ChangeVideo.get_Streams()
-        # print(available_ports)
-        # onClick()
-        self.cap = cv2.VideoCapture(self.video_source_stream.get())
-        self.stop = False
+            if self.stop:
+                self.show_frames()
 
     # Resets the frame on being raised to play the video again
     def reset(self):
         self.counter = 0
         self.frameNumber = 0
         self.stop = False
-
 
 
 class ButtonImage(ttk.Button):
@@ -323,7 +311,7 @@ class ButtonImage(ttk.Button):
         self.img_path = image_path
         self.image = pil_image
 
-    def print_text(self):
+    def show_image_button(self):
         img = cv2.imread(self.img_path)
         height, width, channel = img.shape
         if height > 1600 or width > 900:
@@ -334,24 +322,19 @@ class ButtonImage(ttk.Button):
 class AlbumFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
-
         self.grid(column=0, row=0, padx=5, sticky="nsew")
 
     def populate(self):
         options = {"padx": 5, "pady": 0}
         image_increment = 0
-        all_images, all_images_tk = ChangeVideo.getall_images()
+        all_images, all_images_tk = FunctionHolder.getall_images()
         for i in range(0, 5):
             for j in range(0, 5):
                 icon = all_images_tk[image_increment]
                 self.image_button = ButtonImage(self, i, j, all_images[image_increment], icon)
-                self.image_button.configure(command=self.image_button.print_text, image=icon)
-                #self.image_button.image = icon
+                self.image_button.configure(command=self.image_button.show_image_button, image=icon)
+                # self.image_button.image = icon
                 image_increment += 1
-
-        # self.change_source_button = ttk.Button(self, text="View image")
-        # self.change_source_button.grid(column=0, row=0)
-        # self.change_source_button.configure(command=lambda: print("a"))
 
     def reset(self):
         for child in self.winfo_children():
@@ -388,7 +371,6 @@ class ControlFrame(ttk.LabelFrame):
             False)
         self.frames[1] = AlbumFrame(
             container)
-
         self.change_frame()
 
     def change_frame(self):
@@ -400,7 +382,13 @@ class ControlFrame(ttk.LabelFrame):
 
 if __name__ == "__main__":
     # load the model
-    model = load_model('./best_model.h5')
+    cur_dir = os.getcwd()
+    parent_dir = os.path.dirname(cur_dir)
+    if not os.path.isdir(parent_dir + r"\obstruction"):
+        os.makedirs(parent_dir + r"\obstruction")
+    else:
+        print("Exists")
+    model = load_model('best_model.h5')
     # summarize model.
     model.summary()
     app = App("Video")

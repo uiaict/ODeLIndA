@@ -74,8 +74,6 @@ while True:
         counter += 1
 
 
-
-
     #cv2.imshow("Video Frame",frame)
     #if cv2.waitKey(1) & 0xFF == ord("q"):
     #    break
