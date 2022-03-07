@@ -89,6 +89,7 @@ class FunctionHolder:
 
 
 def close(event):
+    cv2.destroyAllWindows()
     sys.exit()
 
 
@@ -384,10 +385,20 @@ if __name__ == "__main__":
     # load the model
     cur_dir = os.getcwd()
     parent_dir = os.path.dirname(cur_dir)
+    print(cur_dir)
     if not os.path.isdir(parent_dir + r"\obstruction"):
         os.makedirs(parent_dir + r"\obstruction")
     else:
         print("Exists")
+
+    if os.path.isdir(parent_dir + r"\best_model.h5") or os.path.isdir(cur_dir + r"\best_model.h5"):
+        print(os.path.isdir(parent_dir + r"\best_model.h5"))
+        print(os.path.isdir(cur_dir + r"\best_model.h5"))
+        print("Missing model")
+        exit()
+
+    print(os.path.isdir(parent_dir + r"\best_model.h5"))
+    print(os.path.isdir(cur_dir + r"\best_model.h5"))
     model = load_model('best_model.h5')
     # summarize model.
     model.summary()
