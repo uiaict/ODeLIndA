@@ -58,12 +58,12 @@ class FunctionHolder:
         valid_file_endings = [".png", ".jpg"]
         onlyfiles = []
         all_images_tk = []
-        for root, dirs, files in os.walk(os.path.abspath("./obstruction/")):
+        for root, dirs, files in os.walk(os.path.abspath(os.getcwd() + "/obstruction/")):
             for file in files:
                 onlyfiles.append(os.path.join(root, file))
         for i in range(len(onlyfiles)):
             img = Image.open(onlyfiles[i])
-            resized_image = img.resize((224, 224), Image.ANTIALIAS)
+            resized_image = img.resize((150, 150), Image.ANTIALIAS)
             new_image = ImageTk.PhotoImage(resized_image)
             all_images_tk.append(new_image)
         return onlyfiles, all_images_tk
@@ -84,8 +84,9 @@ class FunctionHolder:
         dim = (width, height)
         frame25 = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
         cv2.imshow(imwrite_text[0], frame25)
+        cv2.imwrite(os.curdir + imwrite_text[2], frame25)
         print(imwrite_text[1])
-        cv2.imwrite(imwrite_text[2], frame)
+        # print(imwrite_text[2])
 
 
 def close(event):
@@ -184,6 +185,8 @@ class ViewerFrame(ttk.Frame):
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
 
+        self.pause_unpause_var = tk.StringVar(value="Unpause")
+
         # Label holder for our video images
         self.video_label = ttk.Label(self)
         self.video_label.grid(column=0, row=0, sticky="w", **options)
@@ -196,9 +199,13 @@ class ViewerFrame(ttk.Frame):
         self.change_live_button = ttk.Button(self, text="Change to live source")
         self.change_live_button.grid(column=0, row=2, sticky="w")
         self.change_live_button.configure(command=lambda: self.callPopup(container))
+
+        self.pause_unpause_button = ttk.Button(self, textvariable=self.pause_unpause_var)
+        self.pause_unpause_button.grid(column=0, row=3, sticky="w")
+        self.pause_unpause_button.configure(command=self.toggle_feed)
         # self.change_live_button.configure(command=self.toggle_feed)
         # Initiates the start of our frames being read
-        self.show_frames()
+        # self.show_frames()
         # self.button_label = ttk.Label(self)
         # self.button_label.grid(column=0, row=1, sticky="w", **options)
         self.grid(column=0, row=0, padx=5, pady=5, sticky="nsew")
@@ -220,9 +227,11 @@ class ViewerFrame(ttk.Frame):
     def toggle_feed(self):
         if self.after_id == None:
             self.show_frames()
+            self.pause_unpause_var.set("pause stream")
         else:
             self.after_cancel(self.after_id)
             self.after_id = None
+            self.pause_unpause_var.set("unpause stream")
 
     def show_frames(self):
         """
@@ -258,19 +267,19 @@ class ViewerFrame(ttk.Frame):
                 if predictor(frame) == 1:
                     FunctionHolder.predictor_text(frame, labels[0], font, ["Lens Crack",
                                                                            f"Crack View at {td[1]}:{td[2]}",
-                                                                           f"./obstruction/{td[1]}-{td[2]}_crack.jpg"])
+                                                                           f"/obstruction/{td[1]}-{td[2]}_crack.jpg"])
                 elif predictor(frame) == 2:
                     FunctionHolder.predictor_text(frame, labels[1], font, ["Dirty Lens",
                                                                            f"Dirty View at {td[1]}:{td[2]}",
-                                                                           f"./obstruction/{td[1]}-{td[2]}_dirty.jpg"])
+                                                                           f"/obstruction/{td[1]}-{td[2]}_dirty.jpg"])
                 elif predictor(frame) == 3:
                     FunctionHolder.predictor_text(frame, labels[2], font, ["Foggy View",
                                                                            f"Foggy at {td[1]}:{td[2]}",
-                                                                           f"./obstruction/{td[1]}-{td[2]}_foggy.jpg"])
+                                                                           f"/obstruction/{td[1]}-{td[2]}_foggy.jpg"])
                 elif predictor(frame) == 4:
                     FunctionHolder.predictor_text(frame, labels[3], font, ["Rainy View",
                                                                            f"Rainy at {td[1]}:{td[2]}",
-                                                                           f"./obstruction/{td[1]}-{td[2]}_rainy.jpg"])
+                                                                           f"/obstruction/{td[1]}-{td[2]}_rainy.jpg"])
                 else:
                     print(f"Clean View at {td[1]}:{td[2]}")
                 self.frameNumber += 1
@@ -321,21 +330,73 @@ class ButtonImage(ttk.Button):
 
 
 class AlbumFrame(ttk.Frame):
-    def __init__(self, container):
+    def __init__(self, container, image_thresh, self_no=0, images=None, images_tk=None, is_child=False):
         super().__init__(container)
         self.grid(column=0, row=0, padx=5, sticky="nsew")
+        self.parent = container
+        self.images = images
+        self.images_tk = images_tk
+        # Threshold for nextpage on image album
+        # only works for multiples of 5
+        self.thresh = image_thresh
+        self.is_child = is_child
+        self.number = self_no
+        self.pageno = tk.Label(self, text=str(self.number))
+        self.pageno.grid(column=3, row=0)
 
     def populate(self):
         options = {"padx": 5, "pady": 0}
         image_increment = 0
-        all_images, all_images_tk = FunctionHolder.getall_images()
-        for i in range(0, 5):
-            for j in range(0, 5):
-                icon = all_images_tk[image_increment]
-                self.image_button = ButtonImage(self, i, j, all_images[image_increment], icon)
-                self.image_button.configure(command=self.image_button.show_image_button, image=icon)
-                # self.image_button.image = icon
-                image_increment += 1
+        self.frames = {}
+        if self.images is None:
+            self.images, self.images_tk = FunctionHolder.getall_images()
+        x_index = 1
+        y_index = 0
+        if self.is_child:
+            self.change_live_button = ttk.Button(self, text="Prev page")
+            self.change_live_button.grid(column=2, row=8, sticky="e")
+            self.change_live_button.configure(command=lambda: self.change_frame(1))
+            self.frames[1] = self.parent
+        for each in self.images:
+            icon = self.images_tk[image_increment]
+            self.image_button = ButtonImage(self, x_index, y_index + 1, each, icon)
+            self.image_button.configure(command=self.image_button.show_image_button, image=icon)
+            # print("X index {}, Y index {}".format(x_index, y_index))
+            if image_increment == self.thresh-1:
+                self.change_live_button = ttk.Button(self, text="Next page")
+                self.change_live_button.grid(column=4, row=8, sticky="e")
+                self.change_live_button.configure(command=lambda: self.change_frame(0))
+                # print(len(self.images[self.thresh:]))
+                self.frames[0] = AlbumFrame(self, image_thresh=25, is_child=True, images=self.images[self.thresh:],
+                                            images_tk=self.images_tk[self.thresh:], self_no=self.number + 1)
+                break
+            x_index += 1
+            image_increment += 1
+            if x_index > 5:
+                x_index = 1
+                y_index += 1
+
+    def change_frame(self, no):
+        for child in self.winfo_children():
+            # print("button" in str(child) or "")
+            # print(str(child))
+            if ("button" in str(child)):
+                child.destroy()
+
+        if no >= 0:
+            frame = self.frames[no]
+            # cheap way to suspend the first frame if it is being switched from
+            frame.reset()
+            frame.tkraise()
+
+        #
+        # for i in range(0, 5):
+        #     for j in range(0, 5):
+        #         icon = all_images_tk[image_increment]
+        #         self.image_button = ButtonImage(self, i, j, all_images[image_increment], icon)
+        #         self.image_button.configure(command=self.image_button.show_image_button, image=icon)
+        #         # self.image_button.image = icon
+        #         image_increment += 1
 
     def reset(self):
         for child in self.winfo_children():
@@ -352,14 +413,14 @@ class ControlFrame(ttk.LabelFrame):
 
         ttk.Radiobutton(
             self,
-            text="Display Video",
+            text="Video feed",
             value=0,
             variable=self.selected_value,
             command=self.change_frame).grid(column=0, row=0, padx=5, pady=5)
 
         ttk.Radiobutton(
             self,
-            text="Display Video",
+            text="Album",
             value=1,
             variable=self.selected_value,
             command=self.change_frame).grid(column=1, row=0, padx=5, pady=5)
@@ -371,7 +432,7 @@ class ControlFrame(ttk.LabelFrame):
             container,
             False)
         self.frames[1] = AlbumFrame(
-            container)
+            container, image_thresh=25)
         self.change_frame()
 
     def change_frame(self):
@@ -385,20 +446,18 @@ if __name__ == "__main__":
     # load the model
     cur_dir = os.getcwd()
     parent_dir = os.path.dirname(cur_dir)
-    print(cur_dir)
-    if not os.path.isdir(parent_dir + r"\obstruction"):
-        os.makedirs(parent_dir + r"\obstruction")
+    # print(cur_dir)
+    if not os.path.isdir(cur_dir + r"\obstruction"):
+        os.makedirs(cur_dir + r"\obstruction")
     else:
         print("Exists")
 
     if os.path.isdir(parent_dir + r"\best_model.h5") or os.path.isdir(cur_dir + r"\best_model.h5"):
-        print(os.path.isdir(parent_dir + r"\best_model.h5"))
-        print(os.path.isdir(cur_dir + r"\best_model.h5"))
         print("Missing model")
         exit()
 
-    print(os.path.isdir(parent_dir + r"\best_model.h5"))
-    print(os.path.isdir(cur_dir + r"\best_model.h5"))
+    # print(os.path.isdir(parent_dir + r"\best_model.h5"))
+    # print(os.path.isdir(cur_dir + r"\best_model.h5"))
     model = load_model('best_model.h5')
     # summarize model.
     model.summary()

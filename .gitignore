@@ -8,6 +8,9 @@ __pycache__/
 # model extension
 *.h5
 
+# obstruction folder
+obstruction/
+
 # C extensions
 *.so
 
@@ -146,6 +149,8 @@ pip-selfcheck.json
 
 # JIRA plugin
 atlassian-ide-plugin.xml
+
+
 
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
