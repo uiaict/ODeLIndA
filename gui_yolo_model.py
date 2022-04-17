@@ -127,167 +127,6 @@ class FunctionHolder:
             # 1: class name  2: object width in pixels, 3: position where have to draw text(distance)
             if 0 <= classid[0] <= 79:
                 data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            #
-            # if classid[0] == 0:  # person class id
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 1:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 2:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 3:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 4:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 5:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 6:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 7:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 8:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 9:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 10:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 11:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 12:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 13:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 14:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 15:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 16:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 17:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 18:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 19:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 20:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 21:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 22:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 23:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 24:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 25:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 26:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 27:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 28:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 29:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 30:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 31:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 32:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 33:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 34:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 35:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 36:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 37:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 38:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 39:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 40:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 41:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 42:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 43:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 44:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 45:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 46:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 47:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 48:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 49:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 50:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 51:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 52:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 53:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 54:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 55:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 56:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 57:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 58:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 59:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 60:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 61:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 62:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 63:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 64:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 65:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 66:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 67:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 68:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 69:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 70:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 71:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 72:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 73:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 74:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 75:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 76:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 77:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 78:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            # elif classid[0] == 79:
-            #     data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
 
             # if you want inclulde more classes then you have to simply add more [elif] statements here
             # returning list containing the object data.
@@ -297,30 +136,6 @@ class FunctionHolder:
 def close(event):
     cv2.destroyAllWindows()
     sys.exit()
-
-
-def predictor(img):
-    test_image = cv2.resize(img, (224, 224))
-    test_image = np.expand_dims(test_image, axis=0)
-    test_image = test_image / 255
-    result = model.predict(test_image)
-    prediction = 0
-    if np.argmax(result) == 0:
-        prediction = "There is no obstruction, it is clean view of camera"
-    elif np.argmax(result) == 1:
-        prediction = "There is a glass crack in view of camera"
-    elif np.argmax(result) == 2:
-        prediction = "There is a dark view in the camera"
-    elif np.argmax(result) == 3:
-        prediction = "There is a dirty view in the camera"
-    elif np.argmax(result) == 4:
-        prediction = "There is a flare view in the camera"
-    elif np.argmax(result) == 5:
-        prediction = "There is a foggy view in the camera"
-    elif np.argmax(result) == 6:
-        prediction = "There is a rainy view in the camera"
-    # print(np.argmax(result))
-    return prediction
 
 
 class App(tk.Tk):
@@ -469,7 +284,7 @@ class ViewerFrame(ttk.Frame):
             for d in data:
                 focal_range = focal_length_finder(KNOWN_DISTANCE, MOBILE_WIDTH, d[1])
                 if d[0] == 'person':
-                    distance = distance_finder(focal_range, MOBILE_WIDTH, d[1])
+                    distance = distance_finder(focal_range, PERSON_WIDTH, d[1])
                     x, y = d[2]
                     print(distance)
                 elif d[0] == 'cell phone':

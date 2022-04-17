@@ -39,16 +39,13 @@ class FunctionHolder:
             camera = cv2.VideoCapture(dev_port)
             if not camera.isOpened():
                 non_working_ports.append(dev_port)
-                # print("Port %s is not working." % dev_port)
             else:
                 is_reading, img = camera.read()
                 w = camera.get(3)
                 h = camera.get(4)
                 if is_reading:
-                    # print("Port %s is working and reads images (%s x %s)" % (dev_port, h, w))
                     available_ports.append(dev_port)
                 else:
-                    # print("Port %s for camera (%s x %s) is present but does not reads." % (dev_port, h, w))
                     working_ports.append(dev_port)
             dev_port += 1
         return available_ports
@@ -101,20 +98,22 @@ def predictor(img):
     result = model.predict(test_image)
     prediction = 0
     if np.argmax(result) == 0:
-        prediction = "There is no obstruction, it is clean view of camera"
+        prediction = 0  # "There is no obstruction, it is clean view of camera"
     elif np.argmax(result) == 1:
-        prediction = "There is a glass crack in view of camera"
+        prediction = 1  # "There is a lens crack in view of camera"
     elif np.argmax(result) == 2:
-        prediction = "There is a dark view in the camera"
+        prediction = 2  # "There is a dark view in the camera"
     elif np.argmax(result) == 3:
-        prediction = "There is a dirty view in the camera"
+        prediction = 3  # "There is a dirty view in the camera"
     elif np.argmax(result) == 4:
-        prediction = "There is a flare view in the camera"
+        prediction = 4  # "There is a flare view in the camera"
     elif np.argmax(result) == 5:
-        prediction = "There is a foggy view in the camera"
+        prediction = 5  # "There is a foggy view in the camera"
     elif np.argmax(result) == 6:
-        prediction = "There is a rainy view in the camera"
-    #print(np.argmax(result))
+        prediction = 6  # "There is a frost view in the camera"
+    elif np.argmax(result) == 7:
+        prediction = 7  # "There is a rainy view in the camera"
+    # print(np.argmax(result))
     return prediction
 
 
@@ -130,7 +129,7 @@ class CameraSelection_PopUp(Toplevel):
         Toplevel.__init__(self, master)
         self.master = master
         self.called = called_by
-        self.geometry("900x900")
+        self.geometry("300x300")
         self.called.stop = True
         self.master.withdraw()
         self.populate(available_cams)
@@ -150,6 +149,7 @@ class CameraSelection_PopUp(Toplevel):
                 row += 1
                 column = 0
         return 0
+
     def buttonpress(self):
         self.master.deiconify()
         self.destroy()
@@ -182,11 +182,7 @@ class ViewerFrame(ttk.Frame):
         """
         self.video_source_stream = tk.IntVar()
         self.video_source_stream.set(0)
-        self.width = 800
-        self.height = 800
         self.cap = cv2.VideoCapture(self.video_source_stream.get())
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
 
         self.pause_unpause_var = tk.StringVar(value="Unpause")
 
@@ -236,7 +232,6 @@ class ViewerFrame(ttk.Frame):
             self.after_id = None
             self.pause_unpause_var.set("unpause stream")
 
-
     def show_frames(self):
 
         """
@@ -250,12 +245,11 @@ class ViewerFrame(ttk.Frame):
             frameCount = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
             duration = frameCount / fps
             target = 5
-            # time.sleep(0.5)
             ret, frame = self.cap.read()
             height, width, channels = frame.shape
             frame_edited = cv2.flip(frame, 1)
             if (height >= 1920 or width >= 1080):
-                frame_edited = cv2.resize(frame, (900, 900))
+                frame_edited = cv2.resize(frame, (600, 600))
             cv2image = cv2.cvtColor(frame_edited, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(cv2image)
             imgtk = ImageTk.PhotoImage(image=img)
@@ -266,6 +260,7 @@ class ViewerFrame(ttk.Frame):
                       "Dirty Lens  : Please clean the camera lens",
                       "Flared view : Please cover the view",
                       "Foggy View  : Drive carefully and decrease the speed",
+                      "Frosted View: Clean the camera lens",
                       "Rainy View  : Drive carefully and decrease the speed",
                       ]
             font = cv2.FONT_HERSHEY_SIMPLEX
@@ -295,7 +290,11 @@ class ViewerFrame(ttk.Frame):
                                                                            f"Foggy at {td[1]}:{td[2]}",
                                                                            f"/obstruction/{td[1]}-{td[2]}_foggy.jpg"])
                 elif predictor(frame) == 6:
-                    FunctionHolder.predictor_text(frame, labels[5], font, ["Rainy View",
+                    FunctionHolder.predictor_text(frame, labels[5], font, ["Frosted View",
+                                                                           f"Frosted over at {td[1]}:{td[2]}",
+                                                                           f"/obstruction/{td[1]}-{td[2]}frosted.jpg"])
+                elif predictor(frame) == 7:
+                    FunctionHolder.predictor_text(frame, labels[6], font, ["Rainy View",
                                                                            f"Rainy at {td[1]}:{td[2]}",
                                                                            f"/obstruction/{td[1]}-{td[2]}_rainy.jpg"])
                 else:
@@ -305,7 +304,7 @@ class ViewerFrame(ttk.Frame):
                 ret = self.cap.grab()
                 self.counter += 1
             self.after_id = self.video_label.after(5, self.show_frames)
-            print(time.time() - start_time)
+            # print(time.time() - start_time)
         else:
             self.after_cancel(self.after_id)
             self.after_id = None
@@ -381,7 +380,7 @@ class AlbumFrame(ttk.Frame):
             self.image_button = ButtonImage(self, x_index, y_index + 1, each, icon)
             self.image_button.configure(command=self.image_button.show_image_button, image=icon)
             # print("X index {}, Y index {}".format(x_index, y_index))
-            if image_increment == self.thresh-1:
+            if image_increment == self.thresh - 1:
                 self.change_live_button = ttk.Button(self, text="Next page")
                 self.change_live_button.grid(column=4, row=8, sticky="e")
                 self.change_live_button.configure(command=lambda: self.change_frame(0))
@@ -399,7 +398,7 @@ class AlbumFrame(ttk.Frame):
         for child in self.winfo_children():
             # print("button" in str(child) or "")
             # print(str(child))
-            if ("button" in str(child)):
+            if "button" in str(child):
                 child.destroy()
 
         if no >= 0:
@@ -465,19 +464,17 @@ if __name__ == "__main__":
     # load the model
     cur_dir = os.getcwd()
     parent_dir = os.path.dirname(cur_dir)
-    # print(cur_dir)
     if not os.path.isdir(cur_dir + r"\obstruction"):
         os.makedirs(cur_dir + r"\obstruction")
     else:
         print("Exists")
 
-    if os.path.isdir(parent_dir + r"\the_best_model.h5") or os.path.isdir(cur_dir + r"\best_model.h5"):
+    if os.path.isdir(parent_dir + r"\mobilnet_model_more_trained.h5") or os.path.isdir(
+            cur_dir + r"\mobilnet_model_more_trained.h5"):
         print("Missing model")
         exit()
 
-    # print(os.path.isdir(parent_dir + r"\best_model.h5"))
-    # print(os.path.isdir(cur_dir + r"\best_model.h5"))
-    model = load_model('the_best_model.h5')
+    model = load_model('mobilnet_model_more_trained.h5')
     # summarize model.
     model.summary()
     app = App("Video")

@@ -11,9 +11,12 @@ import time
 import cv2
 import os
 from tensorflow.keras.models import load_model
+
 model = load_model('../best_model.h5')
 # summarize model.
 model.summary()
+
+
 # load dataset
 def predictor(img):
     test_image = cv2.resize(img, (224, 224))
@@ -24,19 +27,20 @@ def predictor(img):
     if np.argmax(result) == 0:
         prediction = "There is no obstruction, it is clean view of camera"
     elif np.argmax(result) == 1:
-        prediction = "There is a glass crack in view of camera"
+        prediction = 1  # "There is a glass crack in view of camera"
     elif np.argmax(result) == 2:
-        prediction = "There is a dark view in the camera"
+        prediction = 2  # "There is a dark view in the camera"
     elif np.argmax(result) == 3:
-        prediction = "There is a dirty view in the camera"
+        prediction = 3  # "There is a dirty view in the camera"
     elif np.argmax(result) == 4:
-        prediction = "There is a flare view in the camera"
+        prediction = 4  # "There is a flare view in the camera"
     elif np.argmax(result) == 5:
-        prediction = "There is a foggy view in the camera"
+        prediction = 5  # "There is a foggy view in the camera"
     elif np.argmax(result) == 6:
-        prediction = "There is a rainy view in the camera"
-    #print(np.argmax(result))
+        prediction = 6 #"There is a rainy view in the camera"
+    # print(np.argmax(result))
     return prediction
+
 
 def predictor_text(frame, labels, font, imwrite_text):
     # time.sleep(0.5)
@@ -58,18 +62,19 @@ def predictor_text(frame, labels, font, imwrite_text):
     print(imwrite_text[1])
     # print(imwrite_text[2])
 
+
 labels = ["Lens Crack  : Please repair camera lens",
-                      "Dark view   : Drive carefully and decrease the speed",
-                      "Dirty Lens  : Please clean the camera lens",
-                      "Flared view : Please cover the view",
-                      "Foggy View  : Drive carefully and decrease the speed",
-                      "Rainy View  : Drive carefully and decrease the speed",
-                      ]
+          "Dark view   : Drive carefully and decrease the speed",
+          "Dirty Lens  : Please clean the camera lens",
+          "Flared view : Please cover the view",
+          "Foggy View  : Drive carefully and decrease the speed",
+          "Rainy View  : Drive carefully and decrease the speed",
+          ]
 
 cap = cv2.VideoCapture(0)
 fps = cap.get(cv2.CAP_PROP_FPS)
 frameCount = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-duration = frameCount/fps
+duration = frameCount / fps
 target = 5
 counter = 0
 frameNumber = 0
@@ -84,28 +89,28 @@ while True:
 
         if predictor(frame) == 1:
             predictor_text(frame, labels[0], font, ["Lens Crack",
-                                                                   f"Crack View at {td[1]}:{td[2]}",
-                                                                   f"/obstruction/{td[1]}-{td[2]}_crack.jpg"])
+                                                    f"Crack View at {td[1]}:{td[2]}",
+                                                    f"/obstruction/{td[1]}-{td[2]}_crack.jpg"])
         elif predictor(frame) == 2:
             predictor_text(frame, labels[1], font, ["Dark view",
-                                                                   f"Dark View at {td[1]}:{td[2]}",
-                                                                   f"/obstruction/{td[1]}-{td[2]}_dark.jpg"])
+                                                    f"Dark View at {td[1]}:{td[2]}",
+                                                    f"/obstruction/{td[1]}-{td[2]}_dark.jpg"])
         elif predictor(frame) == 3:
             predictor_text(frame, labels[2], font, ["Dirty View",
-                                                                   f"Dirty at {td[1]}:{td[2]}",
-                                                                   f"/obstruction/{td[1]}-{td[2]}_dirty.jpg"])
+                                                    f"Dirty at {td[1]}:{td[2]}",
+                                                    f"/obstruction/{td[1]}-{td[2]}_dirty.jpg"])
         elif predictor(frame) == 4:
             predictor_text(frame, labels[3], font, ["Flare View",
-                                                                   f"Flare at {td[1]}:{td[2]}",
-                                                                   f"/obstruction/{td[1]}-{td[2]}_flare.jpg"])
+                                                    f"Flare at {td[1]}:{td[2]}",
+                                                    f"/obstruction/{td[1]}-{td[2]}_flare.jpg"])
         elif predictor(frame) == 5:
             predictor_text(frame, labels[4], font, ["Foggy View",
-                                                                   f"Foggy at {td[1]}:{td[2]}",
-                                                                   f"/obstruction/{td[1]}-{td[2]}_foggy.jpg"])
+                                                    f"Foggy at {td[1]}:{td[2]}",
+                                                    f"/obstruction/{td[1]}-{td[2]}_foggy.jpg"])
         elif predictor(frame) == 6:
             predictor_text(frame, labels[5], font, ["Rainy View",
-                                                                   f"Rainy at {td[1]}:{td[2]}",
-                                                                   f"/obstruction/{td[1]}-{td[2]}_rainy.jpg"])
+                                                    f"Rainy at {td[1]}:{td[2]}",
+                                                    f"/obstruction/{td[1]}-{td[2]}_rainy.jpg"])
         else:
             print(f"Clean View at {td[1]}:{td[2]}")
         frameNumber += 1
@@ -114,11 +119,9 @@ while True:
         counter += 1
     print(time.time() - cur_time)
 
-    #cv2.imshow("Video Frame",frame)
-    #if cv2.waitKey(1) & 0xFF == ord("q"):
+    # cv2.imshow("Video Frame",frame)
+    # if cv2.waitKey(1) & 0xFF == ord("q"):
     #    break
-
-
 
 # When everything done, release the video capture object
 
