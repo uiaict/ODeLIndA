@@ -1,0 +1,8 @@
+clean
+crack
+dark
+dirty
+flare
+fog
+frost
+rain
