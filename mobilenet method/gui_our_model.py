@@ -10,6 +10,8 @@ from PIL import Image, ImageTk
 from tkinter import ttk
 import cv2
 import os
+
+from imageai.Prediction import imagenet_utils
 from tensorflow.keras.models import load_model
 import numpy as np
 import time
@@ -183,6 +185,7 @@ class ViewerFrame(ttk.Frame):
         self.video_source_stream = tk.IntVar()
         self.video_source_stream.set(0)
         self.cap = cv2.VideoCapture(self.video_source_stream.get())
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
 
         self.pause_unpause_var = tk.StringVar(value="Unpause")
 
@@ -221,7 +224,7 @@ class ViewerFrame(ttk.Frame):
             options_popup.wait_window()
         self.stop = False
         self.cap = cv2.VideoCapture(self.video_source_stream.get())
-        self.show_frames()
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
 
     def toggle_feed(self):
         if self.after_id == None:
@@ -241,15 +244,14 @@ class ViewerFrame(ttk.Frame):
         """
         if not self.stop:
             start_time = time.time()
-            fps = self.cap.get(cv2.CAP_PROP_FPS)
+            fps = self.fps
             frameCount = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
             duration = frameCount / fps
-            target = 5
+            target = fps / 5
             ret, frame = self.cap.read()
             height, width, channels = frame.shape
             frame_edited = cv2.flip(frame, 1)
-            if (height >= 1920 or width >= 1080):
-                frame_edited = cv2.resize(frame, (600, 600))
+            frame_edited = cv2.resize(frame_edited, (600, 600))
             cv2image = cv2.cvtColor(frame_edited, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(cv2image)
             imgtk = ImageTk.PhotoImage(image=img)
@@ -320,8 +322,7 @@ class ViewerFrame(ttk.Frame):
         videopath = FunctionHolder.get_Video()
         if videopath is not None:
             self.cap = cv2.VideoCapture(videopath)
-            if self.stop:
-                self.show_frames()
+            self.fps = self.cap.get(cv2.CAP_PROP_FPS)
 
     # Resets the frame on being raised to play the video again
     def reset(self):
@@ -469,12 +470,12 @@ if __name__ == "__main__":
     else:
         print("Exists")
 
-    if os.path.isdir(parent_dir + r"\mobilnet_model_more_trained.h5") or os.path.isdir(
-            cur_dir + r"\mobilnet_model_more_trained.h5"):
+    if os.path.isdir(parent_dir + r"\mobilnet_model2.h5") or os.path.isdir(
+            cur_dir + r"\mobilnet_model2.h5"):
         print("Missing model")
         exit()
 
-    model = load_model('mobilnet_model_more_trained.h5')
+    model = load_model('mobilnet_model2.h5')
     # summarize model.
     model.summary()
     app = App("Video")

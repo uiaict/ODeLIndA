@@ -7,12 +7,11 @@ from datetime import timedelta
 from PIL import Image
 from PIL import ImageTk
 import time
-
 import cv2
 import os
 from tensorflow.keras.models import load_model
 
-model = load_model('../best_model.h5')
+model = load_model(r"mobilenet method\mobilnet_model2.h5")
 # summarize model.
 model.summary()
 
@@ -25,9 +24,9 @@ def predictor(img):
     result = model.predict(test_image)
     prediction = 0
     if np.argmax(result) == 0:
-        prediction = "There is no obstruction, it is clean view of camera"
+        prediction = 0  # "There is no obstruction, it is clean view of camera"
     elif np.argmax(result) == 1:
-        prediction = 1  # "There is a glass crack in view of camera"
+        prediction = 1  # "There is a lens crack in view of camera"
     elif np.argmax(result) == 2:
         prediction = 2  # "There is a dark view in the camera"
     elif np.argmax(result) == 3:
@@ -37,7 +36,9 @@ def predictor(img):
     elif np.argmax(result) == 5:
         prediction = 5  # "There is a foggy view in the camera"
     elif np.argmax(result) == 6:
-        prediction = 6 #"There is a rainy view in the camera"
+        prediction = 6  # "There is a frost view in the camera"
+    elif np.argmax(result) == 7:
+        prediction = 7  # "There is a rainy view in the camera"
     # print(np.argmax(result))
     return prediction
 
@@ -68,6 +69,7 @@ labels = ["Lens Crack  : Please repair camera lens",
           "Dirty Lens  : Please clean the camera lens",
           "Flared view : Please cover the view",
           "Foggy View  : Drive carefully and decrease the speed",
+          "Frosted View: Clean the camera lens",
           "Rainy View  : Drive carefully and decrease the speed",
           ]
 
@@ -86,7 +88,6 @@ while True:
         counter = 0
         time_frame = str(timedelta(seconds=60 * (frameNumber / fps)))
         td = time_frame.split(':')
-
         if predictor(frame) == 1:
             predictor_text(frame, labels[0], font, ["Lens Crack",
                                                     f"Crack View at {td[1]}:{td[2]}",
@@ -126,3 +127,5 @@ while True:
 # When everything done, release the video capture object
 
 cap.release()
+
+
