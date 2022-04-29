@@ -6,9 +6,7 @@ __pycache__/
 *$py.class
 
 # model extension
-*.h5
-*.cfg
-*.weights
+
 
 
 # obstruction folder
