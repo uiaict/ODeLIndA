@@ -10,7 +10,6 @@ from PIL import Image, ImageTk
 from tkinter import ttk
 import cv2
 import os
-
 from imageai.Prediction import imagenet_utils
 from tensorflow.keras.models import load_model
 import numpy as np
