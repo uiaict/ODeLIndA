@@ -1,0 +1,14 @@
+Our datasets were too large to add to our github but they can be accessed with the
+drive links provided below:
+
+Initial dataset (kristiansandmarine):
+
+https://drive.google.com/drive/folders/1M7SAR_twf51t1dpHoV4dK77vzz9kn2xf?usp=sharing
+
+Further trained dataset (further_training):
+
+https://drive.google.com/drive/folders/1o87GYrSa3RwWd71dkZd_iSNi8pk8wlL7?usp=sharing
+
+Evaluation dataset (evaluation):
+
+https://drive.google.com/drive/folders/18nIUA-A1U97dE7_ii7BTDNdJJZE1McSs?usp=sharing
